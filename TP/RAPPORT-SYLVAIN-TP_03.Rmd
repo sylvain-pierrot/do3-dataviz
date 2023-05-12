@@ -1,0 +1,216 @@
+---
+title: "RAPPORT-SYLVAIN-TP_03"
+output:
+  pdf_document:
+date: "2023-04-10"
+---
+
+```{r setup, include=FALSE}
+library(ggforce)
+library(ggplot2)
+theme_set(theme_light())
+library(here)
+library(readr)
+library(tidyr)
+library(dplyr)
+```
+
+# Nombre d'enfants
+
+**Question**: Les couples pacsés ont-ils plus d’enfants de moins de 25 ans que les couples mariés en France en 2017 ?
+
+**Individu**: un couple
+
+**Population**: tous les couples français
+
+**Variable**: nombre d'enfants de moins de 25 ans: quantitative, discrète
+
+**Modalités**: nombre positif
+
+```{r}
+couples <- read_delim(here("data", "rp2017_td_fam2.csv"), 
+    delim = "\t", escape_double = FALSE, 
+    col_types = cols(...8 = col_skip()), 
+    trim_ws = TRUE, skip = 6)
+
+# supprime les lignes du tableau contenant des valeurs manquantes (NA)
+couples <- na.omit(couples)
+
+# renomme les colonnes
+colnames(couples) <- c("situation", "0 enfant", "1 enfant", "2 enfants", "3 enfants", "4 enfants ou plus", "total")
+
+# remplace les valeurs de la colonne "Situation" 
+couples$situation <- c("mariés", "pacsés", "concubinage", "autre", "total")
+
+head(couples)
+```
+
+Les données représentent le nombre d'enfants de moins de 25 ans dans les familles en France en 2017, en fonction de la situation maritale des parents. La variable Situation indique le statut marital des parents (mariés, pacsés, en concubinage et autre), et les autres variables (0 enfant, 1 enfant, 2 enfants, 3 enfants, 4 enfants ou plus) indiquent le nombre d'enfants de moins de 25 ans dans chaque situation maritale.
+
+Les données sont organisées en cinq colonnes correspondant aux cinq situations maritales, et en six lignes, une pour chaque nombre d'enfants et une pour le total. Les données sont numériques, avec des nombres entiers représentant le nombre d'enfants dans chaque situation maritale.
+
+## Formatage
+
+```{r}
+## Format “long” 
+couples_long <- couples %>%
+  pivot_longer(
+    cols = c("0 enfant", "1 enfant", "2 enfants", "3 enfants", "4 enfants ou plus"), 
+    names_to = "enfants", 
+    values_to = "compte"
+)
+couples_long <- couples_long %>% 
+  select(situation, enfants, compte, total)
+couples_long
+```
+
+## Polygone des fréquences
+
+```{r}
+ggplot(couples_long, aes(x = enfants,
+                         y = compte / total, 
+                         color = situation,
+                         group = situation))+ 
+   geom_line() +
+  geom_point() +
+  labs(title = "Fréquences du nombre d'enfants selon la situation maritale",
+       x = "Nombre d'enfants",
+       y = "Fréquence") +
+  theme_bw()
+```
+
+Cette représentation permet de visualiser les fréquences de chaque situation maritale en fonction du nombre d'enfants. Les polygones permettent de suivre l'évolution des fréquences pour chaque situation maritale, tandis que les points représentent les valeurs exactes pour chaque catégorie.
+
+## Graphe simplifier
+
+```{r}
+# Sous-ensemble des données pour les couples mariés et pacsés
+subset <- subset(couples_long, situation == "mariés" | situation == "pacsés")
+
+# Graphe
+ggplot(subset, aes(x = enfants,
+                   y = compte / total, 
+                   color = situation,
+                   group = situation)) + 
+  geom_line() + 
+  labs(title = "Fréquences du nombre d'enfants selon la situation maritale",
+       x = "Nombre d'enfants",
+       y = "Fréquence") +
+   theme_bw()
+```
+
+## Autre question
+
+Y-a-t-il une différence dans la distribution du nombre d'enfants entre les couples mariés et les couples en union libre en France en 2017 ?
+
+```{r}
+subset <- subset(couples_long, situation == "mariés" | situation == "concubinage")
+ggplot(subset, aes(x = enfants,
+                         y = compte / total, 
+                         color = situation,
+                         group = situation))+ 
+  geom_line() + 
+  xlab("Nombres d'enfants") +
+  ylab("Fréquence")
+```
+
+# Expéditions sur l’Everest
+
+```{r}
+expeditions <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-09-22/members.csv')
+expeditions
+```
+
+Le jeu de données "members.csv" contient des informations sur les membres qui ont participé à des expéditions d'alpinisme.
+
+## Age des membres d’une expédition réussie
+
+**Question :** "Comment se répartit l'âge des membres d'une expédition réussie vers le Mont Everest ?"
+
+**Individu**: Les membres participant à une expédition réussie vers le Mont Everest.
+
+**Population**: Tous les membres qui ont participé à une expédition réussie vers le Mont Everest
+
+**Échantillon**: Un sous-ensemble des membres qui ont participé à une expédition réussie vers le Mont Everest et dont l'âge n'est pas manquant
+
+**Variable**: L'age des membres: quantitative, discrète
+
+**Modalité**: Un nombre postif
+
+```{r}
+expeditions_everest <- subset(expeditions, success==TRUE & peak_name=="Everest" & !is.na(age))
+expeditions_everest
+```
+
+```{r}
+ggplot(expeditions_everest, aes(x = age)) + 
+  geom_histogram(binwidth = 5, fill = "blue", color = "black") + 
+  labs(title = "Répartition de l'âge des membres d'une expédition réussie vers le Mont Everest", x = "Âge", y = "Nombre de membres")
+```
+
+```{r}
+ggplot(expeditions_everest, aes(y = age)) +
+  geom_boxplot(fill = "lightblue", color = "black") +
+  labs(title = "Répartition de l'âge des membres d'une expédition réussie vers le Mont Everest", x = "", y = "Âge")
+```
+
+La représentation la plus informative dépend du contexte et de la question posée. Dans ce cas-ci, les deux représentations sont complémentaires : l'histogramme permet de voir la forme de la distribution et la boîte à moustaches permet de voir les valeurs extrêmes, les quartiles et la médiane.
+
+En observant l'histogramme et la boîte à moustaches, on peut dire que l'âge des membres d'une expédition réussie vers le Mont Everest est généralement compris entre 25 et 50 ans, avec une médiane autour de 40 ans. Il y a également quelques membres plus âgés qui ont réussi l'expédition.
+
+## Age en fonction des années d’ascension
+
+```{r}
+ggplot(expeditions_everest, aes(x=year, y=age, group=year)) +
+  geom_boxplot() +
+  ggtitle("Répartition des âges des membres d'expéditions réussies vers le Mont Everest par année")
+```
+
+## Age des membres d’une expédition réussie ou non
+
+**Question :** "Y-a-t-il une différence d'âge entre les membres d'une expédition réussie, et ceux d'une expédition qui a échoué, avec ou sans oxygène ?"
+
+**Individus :** Les membres des expéditions vers le Mont Everest qui ont été recensées
+
+**Population :** L'ensemble des membres des expéditions vers le Mont Everest
+
+**Échantillon :** Les membres des expéditions réussies et échouées du Mont Everest, avec et sans oxygène, pour lesquels l'âge est connu.
+
+**Variables :** âge des membres:quantitative discrète
+
+**Modalités :** un nombre positif
+
+```{r}
+expeditions_selection <- expeditions %>% 
+  filter(!is.na(age)) %>% # Retirer les données manquantes
+  filter(peak_name == "Everest") %>% # Filtrer par montagne
+  select(success, oxygen_used, age) %>% # Sélectionner les variables d'intérêt
+  mutate(success = if_else(success, "Succès", "Echec")) %>% # Transformer en catégorie
+  mutate(oxygen_used = if_else(oxygen_used, "Oxygène", "Pas d'oxygène")) # Transformer en catégorie
+
+# Créer les boxplots
+expeditions_boxplot <- ggplot(expeditions_selection, aes(x = success, y = age)) +
+  geom_boxplot() +
+  facet_grid(oxygen_used ~ .,
+             labeller = as_labeller(c(`Oxygène` = "Oxygène", `Pas d'oxygène` = "Pas d'oxygène"))) +
+  scale_x_discrete(name = "Expédition") +
+  scale_y_continuous(name = "Âge")
+expeditions_boxplot
+```
+
+Les boîtes à moustaches montrent une différence notable d'âge entre les membres d'expéditions réussies et échouées. Les membres d'expéditions réussies ont en moyenne un âge plus élevé que ceux d'expéditions échouées. En outre, l'utilisation d'oxygène ne semble pas influencer significativement cette différence.
+
+```{r}
+# Créer les violons
+expeditions_violin <- ggplot(expeditions_selection, aes(x = success, y = age, fill = oxygen_used)) +
+  geom_violin() +
+  facet_grid(oxygen_used ~ .,
+             labeller = as_labeller(c(`Oxygène` = "Oxygène", `Pas d'oxygène` = "Pas d'oxygène"))) +
+  scale_x_discrete(name = "Expédition") +
+  scale_y_continuous(name = "Âge") +
+  guides(fill = guide_legend(title = "Oxygène"))
+
+expeditions_violin
+```
+
+Les violons permettent de mieux voir la forme des distributions des âges selon chaque groupe. Les conclusions restent les mêmes que pour les boîtes à moustaches : les membres d'expéditions réussies ont en moyenne un âge plus élevé que ceux d'expéditions échouées, et l'utilisation d'oxygène ne semble pas influencer significativement cette différence. Les violons sont peut-être plus informatifs pour visualiser la forme des distributions, mais les boîtes à moustaches ont l'avantage d'être plus simples à interpréter et à comparer entre les groupes.

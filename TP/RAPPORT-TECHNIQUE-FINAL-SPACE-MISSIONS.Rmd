@@ -1,0 +1,316 @@
+---
+title: "RAPPORT-TECHNIQUE-FINAL-SPACE-MISSIONS"
+output: html_document
+date: "2023-05-11"
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+```{r setup workspace, include=FALSE}
+library(readr)
+library(ggplot2)
+library(here)
+library(knitr)
+library(dplyr)
+library(janitor)
+library(lubridate)
+library(stringr)
+library(DT)
+library(shiny)
+theme_set(theme_light())
+```
+
+# Toutes les missions spatiales depuis le début de la course à l'espace (1957)
+
+L'exploration spatiale est l'un des sujets les plus passionnants et les plus impressionnants de l'humanité. Depuis le début de la course à l'espace en 1957, d'innombrables missions ont été lancées dans l'espace. Le jeu de données `All Space Missions from 1957`, disponible sur Kaggle, fournit une collection complète d'informations sur toutes les missions spatiales qui ont eu lieu depuis 1957, y compris la date de lancement, le nom de la mission, le pays d'origine, le statut de la mission, et bien plus encore.
+
+Ce jeu de données provient du site web https://nextspaceflight.com/launches/past/?page=1 et constitue une ressource inestimable pour quiconque s'intéresse à l'exploration spatiale et à l'histoire des missions spatiales. L'analyse de ce jeu de données permet de mieux comprendre les progrès de l'exploration spatiale au cours des dernières décennies, y compris les réalisations, les défis et les échecs qui ont façonné notre compréhension de l'univers.
+
+Le jeu de données "Toutes les missions spatiales depuis 1957" est une riche source d'informations qui peut être utilisée à des fins diverses, de la recherche universitaire à la curiosité personnelle. La diversité de ses attributs et l'étendue de la période couverte en font un jeu de données intéressant et utile pour quiconque s'intéresse à l'exploration spatiale. Dans les sections suivantes, nous allons explorer les différents aspects de ce jeu de données, de sa structure et de son contenu aux informations que l'on peut tirer de son analyse.
+
+## Objectifs des missions spatiales
+
+- Lancer des satellites artificiels dans l'orbite terrestre à partir de centres spécialisés.
+- Étudier la Terre afin de résoudre des problèmes critiques liés à notre planète.
+- Effectuer des recherches sur la Terre et les autres planètes du système solaire.
+- Télécommunications et prévisions météorologiques.
+
+## Événements significatifs dans les missions spatiales
+
+| Date               | Évenement                                                                                                    |
+| ------------------ | ------------------------------------------------------------------------------------------------------------ |
+| 04-10-1957         | **premier satellite artificiel de la Terre**                                                                 |
+| 03-11-1957         | **premier animal lancé dans l'espace**                                                                       |
+| 12-4-1961          | **premier homme en orbite autour de la Terre**                                                               |
+| 16-6-1963          | **première femme dans l'espace**                                                                             |
+| 20-7-1969          | **premier homme à marcher sur la Lune**                                                                      |
+| 15-12-1970         | premier atterrissage en douceur sur une autre planète (Vénus)                                                |
+| 19-4-1971          | **lancement de la première station spatiale**                                                                |
+| 13-11-1971         | premier vaisseau spatial en orbite autour d'une autre planète (Mars)                                         |
+| 02-12-1971         | premier vaisseau spatial à atterrir en douceur sur Mars                                                      |
+| 03-12-1973         | premier vaisseau spatial à survoler Jupiter                                                                  |
+| 20-7-1976          | premières images transmises depuis la surface de Mars                                                        |
+| 01-9-1979          | premier vaisseau spatial à survoler Saturne                                                                  |
+| April 12--14, 1981 | premier engin spatial réutilisable lancé et renvoyé de l'espace                                              |
+| 24-1-1986          | premier vaisseau spatial à survoler Uranus                                                                   |
+| 24-8-1989          | premier vaisseau spatial à survoler Neptune                                                                  |
+| 25-4-1990          | **lancement du premier grand télescope optique spatial**                                                     |
+| 07-12-1995         | premier vaisseau spatial en orbite autour de Jupiter                                                         |
+| 02-11-2000         | **premier équipage résident à occuper la Station spatiale internationale**                                   |
+| Feb 14, 2000;      | premier vaisseau spatial à se mettre en orbite (2000) et à atterrir (2001) sur un astéroïde                  |
+| 01-7-2004          | premier vaisseau spatial en orbite autour de Saturne                                                         |
+| 14-1-2005          | premier vaisseau spatial à se poser sur la lune d'une planète autre que la Terre (Titan, la lune de Saturne) |
+| 13-6-2010          | **premier vaisseau spatial à revenir sur Terre avec des échantillons d'un astéroïde**                        |
+| 17-3-2011          | premier vaisseau spatial en orbite autour de Mercure                                                         |
+| 06-8-2104          | premier vaisseau spatial en orbite autour d'une comète                                                       |
+| 12-11-2014         | premier vaisseau spatial à se poser sur une comète                                                           |
+| 06-3-2015          | premier vaisseau spatial à se mettre en orbite autour d'une planète naine (Cérès)                            |
+| 14-7-2015          | premier vaisseau spatial à survoler Pluton                                                                   |
+| 21-12-2015         | retour du premier étage de la fusée sur son site de lancement                                                |
+| 01-1-2019          | **l'objet le plus éloigné (2014 MU69) exploré par un vaisseau spatial**                                      |
+| 03-1-2019          | **premier atterrissage sur la face cachée de la Lune**                                                       |
+
+## Jeu de données
+
+```{r }
+space_missions <- read_csv(here("data", "space_missions.csv")) 
+
+summary(space_missions)
+```
+
+## Nettoyage du jeu de données
+
+```{r }
+space_missions <- space_missions %>% 
+  clean_names() %>% ## Nom des colonnes en minuscules et au format Snake case
+  select(-x1) %>% ## Supprime la première colonne
+  rename(index = unnamed_0) %>% 
+  rename(cost = rocket) %>%
+  rename(rocket_name = detail)
+
+glimpse(space_missions)
+```
+
+### Création d'une nouvelle colonne `launch_date`
+
+Extraire la date de la colonne `datum` et la convertir au format AAAA-MM-JJ.
+
+```{r }
+space_missions <- space_missions %>% 
+  mutate(launch_date = as_date(parse_date_time(datum, c("mdy HM", "mdy"), tz = "UTC"))) 
+
+space_missions %>% select(launch_date)
+```
+
+### Création d'une nouvelle colonne `country`
+
+Extraire le nom du pays à partir de la colonne `location`.
+
+```{r}
+space_missions <- space_missions %>% 
+  mutate(country = word(location, -1))
+
+space_missions %>% count(country, sort =T)
+```
+
+Certains noms de lieux tels que ("Ocean", "Sea", "Facility", "Site") doivent être clarifiés et corrigés.
+
+```{r}
+datatable(
+space_missions %>% select(country, location) %>%
+    filter(country %in% c("Ocean", "Sea", "Facility", "Site")), options = list(columnDefs = list(list(targets = "_all", className = 'dt-center')), pageLength = 10))
+```
+
+Traitement manuel des données.
+
+```{r}
+space_missions <-
+  space_missions %>% mutate(
+    country = case_when(
+      location == "LP Odyssey, Kiritimati Launch Area, Pacific Ocean" ~ "Russia",
+      location == "LP-41, Kauai, Pacific Missile Range Facility" ~ "USA",
+      location == "K-84 Submarine, Barents Sea Launch Area, Barents Sea" |
+        # OR
+        location == "K-496 Submarine, Barents Sea Launch Area, Barents Sea" |
+        # OR
+        location == "K-407 Submarine, Barents Sea Launch Area, Barents Sea" ~ "Russia",
+      location == "Tai Rui Barge, Yellow Sea" ~ "China",
+      location == "Launch Plateform, Shahrud Missile Test Site" ~ "Iran",
+      
+      TRUE ~  word(location, -1)
+    )
+  )
+
+space_missions %>% count(country, sort = T)
+```
+
+## Données manquantes
+
+```{r }
+sapply(space_missions, function(x) sum(is.na(x)))
+```
+
+Il existe plusieurs hypothèses pour expliquer pourquoi la variable `cost` (coût) présente des données manquantes (3360) dans l'ensemble de données sur les missions spatiales. L'une des explications possibles est que les informations sur les coûts n'ont pas été collectées ou communiquées pour certaines missions. Une autre possibilité est que les données sur les coûts ont été perdues ou endommagées au fil du temps. Il est également possible que les informations sur les coûts aient été classifiées ou sensibles et qu'elles n'aient pas été rendues publiques.
+
+Quelle que soit la raison des données manquantes, l'imputation des valeurs manquantes soulève plusieurs questions, telles que la précision de la méthode d'imputation et les biais potentiels introduits par l'imputation des données manquantes. Par conséquent, l'utilisation du coût moyen peut encore fournir une bonne estimation du coût.
+
+```{r }
+#space_missions <- na.omit(space_missions)
+```
+
+## Répartition des dates de lancement en fonction du statut de la mission
+
+```{r }
+ggplot(space_missions, aes(x = status_mission, y = launch_date, fill = status_mission)) +
+  geom_violin(scale = "count", trim = FALSE, alpha = 0.7, width = 1) +
+  scale_fill_manual(values = c("#d91515", "#d97115", "#d9cd15", "#49d915"), 
+                    labels = c("Échec", "Échec partiel", "Échec du pré-lancement", "Succès")) +
+  scale_x_discrete(labels = c("Échec", "Échec partiel", "Échec du pré-lancement", "Succès")) +
+  labs(x = "Statut de la mission", y = "Date de lancement") +
+  guides(fill = guide_legend(title = "Statut de la mission")) +
+  ggtitle("Répartition des dates de lancement en fonction du statut de la mission") +
+  theme(legend.position = "bottom")
+```
+
+En observant le graphique, on peut constater que la majorité des missions spatiales ont été des succès. Les missions ayant connu des échecs (Échec et Échec partiel) sont relativement peu fréquentes par rapport aux missions réussies. On peut également remarquer que les missions ayant connu un échec partiel ou un échec du pré-lancement sont plus concentrées dans le temps que les missions réussies. 
+
+### Filtrage des missions avec `status_mission` autres que "Success"
+
+```{r }
+space_missions_filtered <- space_missions %>%
+  filter(status_mission != "Success")
+
+ggplot(space_missions_filtered, aes(x = status_mission, y = launch_date, fill = status_mission)) +
+  geom_violin(scale = "count", trim = FALSE, alpha = 0.7, width = 1) +
+  scale_fill_manual(values = c("#d91515", "#d97115", "#d9cd15"), 
+                    labels = c("Échec", "Échec partiel", "Échec du pré-lancement")) +
+  scale_x_discrete(labels = c("Échec", "Échec partiel", "Échec du pré-lancement")) +
+  scale_y_date(date_labels = "%Y", breaks = seq(as.Date("1930-01-01"), as.Date("2050-01-01"), by="10 years")) +
+  labs(x = "Statut de la mission", y = "Date de lancement", 
+       title = "Répartition des dates de lancement des missions ayant rencontré \ndes difficultés (hors statut 'Succès')") +
+  guides(fill = guide_legend(title = "Statut de la mission")) +
+  theme(legend.position = "bottom") +
+  coord_flip()
+```
+
+L'avancée technologique peut être une hypothèse plausible pour expliquer la concentration d'échecs dans les premières années des missions spatiales. Les premières missions spatiales étaient souvent des tentatives pour tester de nouvelles technologies et il était courant que des problèmes surviennent lors de ces premiers essais. De plus, les contraintes de temps pour remporter la "course à l'espace" entre les États-Unis et l'Union soviétique ont également pu entraîner une pression accrue pour lancer des missions avant qu'elles ne soient prêtes, augmentant ainsi le risque d'échecs.
+
+Cependant, il est également important de considérer d'autres facteurs tels que les conditions météorologiques, les défauts de fabrication, les erreurs humaines, etc. qui peuvent également avoir contribué aux échecs de mission.
+
+## Répartition du nombre de lancements par pays
+
+```{r }
+launches_by_country <- space_missions %>% 
+  group_by(country) %>% 
+  summarize(launch_count = n()) %>% 
+  arrange(launch_count)
+
+ggplot(launches_by_country, aes(x = reorder(country, launch_count), y = launch_count)) +
+  geom_bar(stat = "identity", fill = "#006699") +
+  labs(x = "Pays", y = "Nombre de lancements") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+```
+
+Le classement des pays en termes de nombre de lancements de fusées est fortement influencé par l'histoire de l'exploration spatiale. Les États-Unis et la Russie ont été les pionniers de la conquête spatiale et ont mené de nombreuses missions spatiales au cours des décennies passées, ce qui explique leur position en tête de liste. Le Kazakhstan a également été un lieu de lancement important pour les missions spatiales russes, tandis que la France est connue pour ses lancements à partir du Centre spatial guyanais en Amérique du Sud. La Chine, le Japon, l'Inde et l'Iran ont également lancé de nombreuses missions spatiales ces dernières années, ce qui explique leur position dans ce classement. En revanche, la Nouvelle-Zélande est un nouvel acteur dans le domaine de l'exploration spatiale et a commencé à effectuer des lancements de fusées plus récemment, ce qui explique sa position plus basse dans la liste.
+
+## Les dépenses vs les pertes par pays
+
+```{r }
+space_missions %>% 
+  mutate(cost_type = ifelse(status_mission == "Success", "Cost", "Loss")) %>%
+  group_by(country, cost_type) %>%
+  summarise(total_cost = sum(cost, na.rm = TRUE)) %>%
+  arrange(total_cost) %>%
+  ggplot(aes(x = reorder(country, total_cost), y = total_cost, fill = cost_type)) + 
+  geom_bar(stat = "identity") +
+  labs(title = "Dépenses et pertes par pays",
+       x = "Pays", y = "Coûts et pertes (en millions USD)",
+       fill = "Type de coût") +
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = "bottom",
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+```
+
+La répartition des dépenses et des pertes par pays dans les missions spatiales est contrastée par rapport au nombre de lancements. Nous pouvons remarquer que la Russie n'a aucun coût ni perte enregistré. Bien que nous ne puissions pas être certains des raisons exactes pour lesquelles ces données sont absentes, nous pouvons formuler des hypothèses à ce sujet.
+
+La Russie est une nation connue pour ses activités spatiales depuis des décennies, avec des réalisations remarquables telles que le lancement du premier satellite artificiel de la Terre, Sputnik, en 1957. Cela suggère que la Russie dispose de ressources financières et techniques considérables pour les missions spatiales, et il est peu probable qu'ils ne dépensent pas d'argent du tout.
+
+Il est possible que la Russie ne divulgue pas toutes ses dépenses et pertes liées aux missions spatiales, car cela pourrait inclure des informations sensibles ou classifiées. En effet, la Russie a un long historique de secret et de réticence à divulguer des informations sensibles, en particulier en ce qui concerne ses activités militaires et spatiales.
+
+En outre, la Russie peut ne pas considérer les dépenses et les pertes liées aux missions spatiales de la même manière que les autres pays. Les valeurs associées à ces mesures peuvent être considérées comme confidentielles ou peuvent être calculées différemment, en fonction des politiques et des pratiques internes du gouvernement russe.
+
+En fin de compte, sans avoir accès à des données plus détaillées sur les activités spatiales de la Russie, il est difficile de savoir pourquoi il n'y a pas de coûts ou de pertes enregistrés pour ce pays.
+
+## Nombre de lancé au cour du temps de SpaceX
+
+```{r }
+space_missions %>%
+  filter(company_name == "SpaceX") %>%
+  group_by(launch_year = as.Date(launch_date) %>% lubridate::year()) %>%
+  summarise(count = n()) %>%
+  ggplot(aes(x = launch_year, y = count)) +
+  geom_line() +
+  labs(title = "Nombre de lancements de SpaceX par année",
+       x = "Année",
+       y = "Nombre de lancements") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Le graphique montre une forte augmentation du nombre de lancements de SpaceX au fil des ans, en particulier à partir de 2017. Cela peut être lié à l'augmentation de la capacité de production de SpaceX et à la mise en place de sa fusée réutilisable Falcon 9, qui a permis des lancements plus fréquents et moins coûteux. En outre, SpaceX a également réussi à remporter de nombreux contrats gouvernementaux importants, notamment avec la NASA, qui ont contribué à augmenter le nombre de lancements. Ces facteurs combinés ont permis à SpaceX de devenir un acteur majeur dans l'industrie spatiale, avec une part de marché importante dans les lancements commerciaux et gouvernementaux.
+
+# Shiny
+
+```{r }
+# Définition de la liste des organisations disponibles dans la base de données
+org_list <- unique(space_missions$company_name)
+
+# Définition de l'application Shiny
+ui <- fluidPage(
+  titlePanel("Nombre de lancements par année"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(inputId = "org", label = "Choisir une organisation", choices = org_list)
+    ),
+    mainPanel(
+      plotOutput(outputId = "plot")
+    )
+  )
+)
+
+server <- function(input, output) {
+  
+  # Sous-ensemble de la base de données correspondant à l'organisation sélectionnée
+  org_data <- reactive({
+    space_missions %>%
+      filter(company_name == input$org)
+  })
+  
+  # Graphique du nombre de lancements par année pour l'organisation sélectionnée
+  output$plot <- renderPlot({
+    org_data() %>%
+      group_by(launch_year = year(as.Date(launch_date))) %>%
+      summarise(count = n()) %>%
+      ggplot(aes(x = launch_year, y = count)) +
+      geom_line() +
+      labs(title = paste0("Nombre de lancements de ", input$org, " par année"),
+           x = "Année",
+           y = "Nombre de lancements") +
+      theme(plot.title = element_text(hjust = 0.5))
+  })
+  
+}
+
+# Lancement de l'application Shiny
+shinyApp(ui, server)
+```
+
+---
+
+Question: Les couples pacsés ont-ils plus d’enfants de moins de 25 ans que les couples mariés en France en
+2017 ?
+Individu: un couple
+Population: tous les couples français
+Variable: nombre d’enfants de moins de 25 ans: quantitative, discrète
+Modalités: nombre positif

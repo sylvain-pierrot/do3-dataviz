@@ -1,0 +1,54 @@
+---
+title: "RAPPORT-TECHNIQUE-FINAL"
+output: html_document
+date: "2023-04-26"
+---
+
+```{r setup, include=FALSE}
+library(readr)
+library(ggplot2)
+library(here)
+library(knitr)
+library(dplyr)
+```
+
+# Santé mentale des étudiants
+
+```{r }
+health <- read_csv(here("data", "Student_Mental_health.csv"))
+kable(head(health))
+```
+
+## Nettoyage des données
+
+```{r }
+health <- na.omit(health)
+names(health) <- c('Timestamp', 'Gender', 'Age', 'Course', 'Year', 'CGPA', 'Married', 'Depression', 'Anxiety', 'Panic_Attack', 'Treatment')
+head(health)
+```
+
+## Quel est le pourcentage d'étudiants souffrant de dépression, d'anxiété ou de crises de panique?
+## Y a-t-il une association entreles notes (CGPA) et la santé mentale (dépression, anxiété, etc.) des étudiants?
+## Est-ce que le taux de dépression diffère significativement entre les différentes formations?
+## Quels sont les formations associés à la présence de dépression chez les étudiants?
+
+# Quelle est la corrélation entre les notes des élèves (CGPA) et leur niveau de anxiété/dépression (Depression/Anxiety) ?
+
+```{r }
+ggplot(health, aes(x = CGPA, y = Anxiety)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = TRUE, color = "red") +
+  labs(x = "CGPA", y = "Anxiety", title = "Corrélation entre CGPA et Anxiété") +
+  theme_bw()
+```
+
+# Quelle est la corrélation entre le niveau de anxiété/dépression (Depression/Anxiety) et la formation (course) ?
+
+```{r }
+ggplot(health, aes(x = Course, y = Depression, fill = Course)) +
+  geom_violin() +
+  geom_jitter(width = 0.1, alpha = 0.5) +
+  scale_fill_brewer(palette = "Set3") +
+  labs(x = "Formation", y = "Niveau de dépression", fill = "Formation") +
+  theme_classic()
+```

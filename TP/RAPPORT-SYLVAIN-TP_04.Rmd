@@ -1,0 +1,108 @@
+---
+title: "RAPPORT-SYLVAIN-TP_04"
+output:
+  html_document:
+    df_print: paged
+date: "2023-04-25"
+---
+
+```{r setup, include=FALSE}
+library(palmerpenguins)
+library(shiny)
+library(ggplot2)
+```
+
+# Pingouins d’Antarctique
+
+```{r}
+penguins <- na.omit(penguins)
+knitr::kable(head(penguins))
+```
+
+# Longeur des ailes
+
+Expérience statistique:
+
+**Question**: “Les différentes espèces de pingouins ont-elles des ailes de longueur différente ?”
+
+**Individu**: un pingouin
+
+**Population**: les pingouins de l'archipel Palmer
+
+**Variable**: longueur des ailes: quantitative, discrète
+
+**Modalités**: nombre positif
+    
+## Histogrammes
+
+Un graphique approprié pour répondre à cette question pourrait être un histogramme des longueurs d'ailes pour chaque espèce de pingouin. Cela permettrait de visualiser la distribution des longueurs d'ailes pour chaque espèce et de comparer les distributions entre elles. La largeur des classes pourrait être choisie de manière à ce que chaque barre représente une plage de longueur d'ailes de 5 mm, par exemple.
+  
+```{r}
+ggplot(penguins, aes(x = flipper_length_mm, fill = species)) +
+  geom_histogram(position = "identity", alpha = 0.7, bins =20) +
+  labs(x = "Longueur des ailes (mm)", y = "Fréquence", fill = "Espèce") +
+  facet_wrap(~ species, ncol = 1)
+```
+
+## Boxplots
+
+Une autre représentation appropriée pourrait être des boxplots pour chaque espèce de pingouin. Cela permettrait de visualiser la distribution des longueurs d'ailes pour chaque espèce, ainsi que les valeurs aberrantes et les écarts interquartiles. Cette représentation est particulièrement utile pour identifier des différences importantes entre les espèces.
+
+```{r}
+ggplot(penguins, aes(y = flipper_length_mm, fill = species)) +
+  geom_boxplot() +
+  labs(y = "Longueur des ailes (mm)", x = "Fréquence", fill = "Espèce") 
+```
+
+## Histogrammes avec sexe :
+
+Dans le cas de l'histogramme, nous pouvons ajouter la variable sex dans l'esthétique et utiliser une couleur de remplissage différente pour chaque sexe.
+
+```{r}
+ggplot(penguins, aes(x = flipper_length_mm, fill = sex)) +
+  geom_histogram(position = "identity", alpha = 0.7, bins = 20) +
+  labs(x = "Longueur des ailes (mm)", y = "Fréquence", fill = "Sexe") +
+  facet_wrap(~ species, ncol = 1)
+```
+
+## Boxplots avec sexe :
+
+Dans le cas des boxplots, nous pouvons ajouter la variable sex dans l'esthétique et utiliser une couleur de remplissage différente pour chaque sexe.
+
+```{r}
+ggplot(penguins, aes(x = species, y = flipper_length_mm, fill = sex)) +
+  geom_boxplot(alpha = 0.5) +
+   labs(x = "Longueur des ailes (mm)", y = "Fréquence", fill = "Sexe")
+```
+
+# Dimensions du bec
+
+```{r}
+ggplot(penguins, aes(x = bill_length_mm, y = bill_depth_mm)) +
+  geom_point() +
+  labs(x = "Longueur du bec (mm)", y = "Largeur du bec (mm)")
+```
+
+On observe une tendance à ce que les pingouins avec un bec plus long aient également un bec plus large.
+
+On peut ajouter une droite de régression à l'aide de la fonction geom_smooth(), avec la méthode de régression linéaire (method = "lm").
+
+```{r}
+ggplot(penguins, aes(x = bill_length_mm, y = bill_depth_mm)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Longueur du bec (mm)", y = "Largeur du bec (mm)")
+```
+
+On voit ainsi que la tendance observée précédemment est renforcée par la droite de régression.
+
+Pour distinguer les espèces, on peut utiliser la variable species pour la couleur des points.
+
+```{r}
+ggplot(penguins, aes(x = bill_length_mm, y = bill_depth_mm, color = species)) +
+  geom_point() +
+  labs(x = "Longueur du bec (mm)", y = "Largeur du bec (mm)", color = "Espèce") +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+On observe alors que la tendance est également présente pour chaque espèce individuellement. On peut noter que les pingouins Adélie et Chinstrap ont une corrélation plus forte entre la longueur et la largeur du bec que les pingouins Gentoo.

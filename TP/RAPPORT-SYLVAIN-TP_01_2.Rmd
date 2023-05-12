@@ -1,0 +1,151 @@
+---
+title: "RAPPORT-SYLVAIN-TP_01_2"
+output: pdf_document
+date: "2023-03-28"
+---
+
+```{r setup, include=FALSE}
+library(here)
+library(ggplot2)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Données: Températures moyennes à Montpellier
+
+```{r}
+temps_average <- read.csv(file = here("data", "temp_average.csv"))
+temps_montpellier <- subset(temps_average, city == "Montpellier")
+head(temps_montpellier)
+```
+
+Ce tableau indique la moyenne des températures pour chaque jour de
+l'année, de 1950 à 2019, dans différentes villes. La colonne "City"
+spécifie la ville. La colonne "day_of_year" indique le numéro du
+jour dans l'année (entre 1 et 366), tandis que la colonne "month"
+correspond au mois (entre 1 et 12). La colonne "temperature" représente
+la moyenne des températures en degrés Celsius pour chaque jour de
+l'année, en fonction de la ville et de la période de 1950 à 2019.
+
+## Données: Statistiques de base
+
+```{r}
+average_temp <- mean(temps_montpellier$temperature)
+cat("Température moyenne sur l’année à Montpellier", average_temp, "\n")
+```
+
+```{r}
+avg_day <- temps_montpellier[average_temp,]$day_of_year
+date_avg_day <- as.Date(avg_day, origin="2022-01-01")
+cat("Jour de température moyenne", toString(date_avg_day))
+```
+
+```{r}
+min_day <- temps_montpellier[which.min(temps_montpellier$temperature),]$day_of_year
+date_min_day <- as.Date(min_day, origin="2022-01-01")
+cat("Jour le plus froid ", toString(date_min_day))
+```
+
+```{r}
+max_day <- temps_montpellier[which.max(temps_montpellier$temperature),]$day_of_year
+date_max_day <- as.Date(max_day, origin="2022-01-01")
+cat("Jour le plus chaud ", toString(date_max_day))
+```
+
+## Températures représentées en `y` 
+
+```{r fig.height=4, fig.width=8, fig.align='center'}
+ggplot(temps_montpellier, aes(x = day_of_year, y = temperature )) + 
+  geom_line() + 
+  theme_light() + 
+  labs(x="Jour de l'année", y="Température (°C)")
+```
+
+```{r fig.height=4, fig.width=8, fig.align='center'}
+ggplot(temps_montpellier, aes(x = day_of_year, y = temperature )) + 
+  geom_line(size = 3, linetype = "dashed", color="blue") + 
+  theme_light() + 
+  labs(x="Jour de l'année", y="Température (°C)")
+```
+
+## Plusieurs villes
+
+```{r fig.height=4, fig.width=8, fig.align='center'}
+ggplot(temps_average, aes(x = day_of_year, y = temperature, linetype = city, color = city)) +
+geom_line(size = 1) +
+theme_light() +
+labs(x = "Jour de l'année", y = "Température (°C)", linetype = "Ville", color = "Ville") +
+scale_linetype_manual(values = c("solid", "dashed", "dotted"))
+```
+
+## Températures représentées en `color`
+
+```{r fig.height=4, fig.width=8, fig.align='center'}
+ggplot(temps_average, aes(y = day_of_year, x = city, color = temperature)) +
+  geom_point(size = 5) +
+  scale_color_gradient(low = "#3366FF", high = "#FF5733") +
+  theme_light() + 
+  labs(x = "Jour de l'année", y = "Température (°C)", linetype = "Ville")
+```
+
+Le graphique montre la moyenne des températures pour chaque jour de l'année dans les villes de Montpellier, Embrun et Lille. Les points sont colorés en fonction de la température moyenne, allant du bleu pour les températures les plus basses au rouge pour les températures les plus élevées.
+
+On peut voir que les températures à Montpellier sont généralement plus élevées que celles d'Embrun et de Lille. De plus, les températures les plus élevées sont atteintes à Montpellier en été, tandis que les températures les plus basses sont enregistrées à Embrun et Lille en hiver.
+
+La variation de couleur rend facilement identifiable les différences de températures entre les villes et les saisons.
+
+## Mélanges
+
+#### Températures en `y`, avec une couleur
+**et** un type de ligne différent pour chaque
+ville
+
+```{r fig.height=4, fig.width=8, fig.align='center'}
+ggplot(temps_average, aes(x = day_of_year, y = temperature, linetype = city, color = city)) +
+geom_line(size = 1) +
+theme_light() +
+labs(x = "Jour de l'année", y = "Température (°C)", linetype = "Ville", color = "Ville") +
+scale_linetype_manual(values = c("solid", "dashed", "dotted"))
+```
+
+#### Températures en `y`, un type de ligne différent pour
+chaque ville, et une couleur pour chaque mois
+
+```{r fig.height=4, fig.width=8, fig.align='center'}
+ggplot(temps_average, aes(y = temperature, x = day_of_year, linetype = city, color = factor(month))) +
+  geom_line(size = 1) +
+  scale_color_manual(values = c("#FF5733", "#3366FF", "#33FF9F", "#FFC300", "#8B00FF", "#FF1493", "#00FFFF", "#FF8C00", "#00FF00", "#9400D3", "#FF0000", "#4B0082")) +
+  theme_light() + 
+  labs(x = "Jour de l'année", y = "Température (°C)", linetype = "Ville", color = "Mois") +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted")) +
+  guides(color = guide_legend(ncol = 2))
+```
+
+#### Températures en `color`, représentées
+verticalement
+
+```{r fig.height=4, fig.width=8, fig.align='center'}
+ggplot(temps_average, aes(y = city, x = day_of_year, fill = temperature)) +
+  geom_tile() +
+  scale_fill_gradient(low = "#3366FF", high = "#FF5733") +
+  coord_flip() +
+  theme_light() + 
+  labs(x = "Jour de l'année", y = "Ville", fill = "Température (°C)")
+```
+
+#### Graphe donnant le mois en fonction du jour de l\'année
+
+```{r fig.height=4, fig.width=8, fig.align='center'}
+ggplot(temps_average, aes(y = day_of_year, x = month, )) + 
+  geom_line() + 
+  theme_light() +
+  labs(x = "Mois", y = "Jour de l'année")
+```
+
+## Mise en forme
+
+```{r fig.height=4, fig.width=8, fig.align='center'}
+ggplot(temps_average, aes(x = day_of_year, y = temperature, color = city)) +
+geom_line(size = 1) +
+theme_light() +
+labs(x="Jour de l'année", y="Température (°C)", title="Température moyenne des villes au cours d'une année", color = "Ville")
+```

@@ -1,0 +1,84 @@
+---
+title: "RAPPORT-SYLVAIN-TP_01_1"
+output: pdf_document
+date: "2023-03-28"
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problématique
+
+On pêche des poissons dans le Lez.
+
+On suppose qu'il y a en tout 10000 poissons dans le Lez, dont 2000
+rouges, 3000 verts et 5000 bleus (le Lez est très pollué). On suppose
+cependant que l'on n'a pas accès à cette information (on ne sait pas
+combien il y a de poissons en tout, ni combien de chaque couleur).
+
+On pêche 100 poissons, que l'on garde pour les exposer en aquarium, et
+l'on note leur couleur.
+
+## Démarche statistique
+
+Quelle est la proportion de poissons rouges, verts et bleus dans le Lez
+?
+
+**Individu**: un poisson
+
+**Population**: les poissons dans le Lez
+
+**Échantillon**: les poissons pêchés
+
+**Taille**: 100
+
+**Variable**: la couleur du poisson
+
+**Modalités**: Rouge / Vert / Bleu
+
+**Type**: qualitative, nominale
+
+```{r lez-experience}
+set.seed(1289)                         ## Reproductibilité
+
+lez <- c(rep("rouge", 2000),          ## 2000 poissons rouges
+          rep("bleu", 5000),         ## 5000 poissons bleues
+          rep("vert", 3000))         ## 3000 poissons vertes 
+
+n_exp <- 100                         ## 100 poissons pêchés
+
+echantillon <- sample(lez,            ## échantillonne les poissons
+                      n_exp,           ## n_exp fois
+                      replace = FALSE) ## sans remise
+```
+
+Résumé de l'expérience (nombre de poissons pêchés).
+
+```{r lez-resultats}
+res <- table(echantillon)             ## Résumé de l'échantillon
+res
+```
+
+Sur les `r n_exp` poissons pêchés dans le Lez, on a pêché ici `r res[1]`
+poissons bleus, `r res[2]` poissons rouges et `r res[3]` poissons verts.
+La fréquence empirique du résultat s'approche de la fréquence théorique.
+
+Résultat.
+
+```{r lez-resultats-tracé}
+barplot(res)                          ## Diagramme en bar
+```
+
+## Conclusion
+
+Lors d'une compilation répétée, le résulat reste le même si le graine
+\`set.seed(1289)\` est fixée.
+
+Le résultat est proportionnel au nombre de poissons pêchés (exemple: 10
+poissons). La fréquence empirique de l'expérience tend vers de la
+fréquence théorique, si la taille de l'échantillon augmente. Donc
+l'estimation est améliorée avec une expérience de plus grande taille.
