@@ -19,6 +19,7 @@ library(lubridate)
 library(stringr)
 library(DT)
 library(shiny)
+#library(leaflet)
 theme_set(theme_light())
 ```
 
@@ -30,12 +31,16 @@ Ce jeu de données provient du site web https://nextspaceflight.com/launches/pas
 
 Le jeu de données "Toutes les missions spatiales depuis 1957" est une riche source d'informations qui peut être utilisée à des fins diverses, de la recherche universitaire à la curiosité personnelle. La diversité de ses attributs et l'étendue de la période couverte en font un jeu de données intéressant et utile pour quiconque s'intéresse à l'exploration spatiale. Dans les sections suivantes, nous allons explorer les différents aspects de ce jeu de données, de sa structure et de son contenu aux informations que l'on peut tirer de son analyse.
 
+___
+
 ## Objectifs des missions spatiales
 
 - Lancer des satellites artificiels dans l'orbite terrestre à partir de centres spécialisés.
 - Étudier la Terre afin de résoudre des problèmes critiques liés à notre planète.
 - Effectuer des recherches sur la Terre et les autres planètes du système solaire.
 - Télécommunications et prévisions météorologiques.
+
+___
 
 ## Événements significatifs dans les missions spatiales
 
@@ -72,6 +77,8 @@ Le jeu de données "Toutes les missions spatiales depuis 1957" est une riche sou
 | 01-1-2019          | **l'objet le plus éloigné (2014 MU69) exploré par un vaisseau spatial**                                      |
 | 03-1-2019          | **premier atterrissage sur la face cachée de la Lune**                                                       |
 
+___
+
 ## Jeu de données
 
 ```{r }
@@ -79,6 +86,8 @@ space_missions <- read_csv(here("data", "space_missions.csv"))
 
 summary(space_missions)
 ```
+
+___
 
 ## Nettoyage du jeu de données
 
@@ -146,6 +155,8 @@ space_missions <-
 space_missions %>% count(country, sort = T)
 ```
 
+___
+
 ## Données manquantes
 
 ```{r }
@@ -160,7 +171,21 @@ Quelle que soit la raison des données manquantes, l'imputation des valeurs manq
 #space_missions <- na.omit(space_missions)
 ```
 
-## Répartition des dates de lancement en fonction du statut de la mission
+___
+
+## Depuis 1957, les missions spatiales ont-elles été couronnées de succès ?
+
+**Question**: "Depuis 1957, les missions spatiales ont-elles été couronnées de succès ?"
+
+**Individu**: Une mission spatiale.
+
+**Population**: Toutes les missions spatiales depuis 1957.
+
+**Échantillon**: Un sous-ensemble des missions spatiales lancées depuis 1957.
+
+**Variable**: Le statut de la mission: qualitative, ordinale
+
+**Modalité**: succès, échec, échec partiel, échec du pré-lancement.
 
 ```{r }
 ggplot(space_missions, aes(x = status_mission, y = launch_date, fill = status_mission)) +
@@ -199,7 +224,21 @@ L'avancée technologique peut être une hypothèse plausible pour expliquer la c
 
 Cependant, il est également important de considérer d'autres facteurs tels que les conditions météorologiques, les défauts de fabrication, les erreurs humaines, etc. qui peuvent également avoir contribué aux échecs de mission.
 
-## Répartition du nombre de lancements par pays
+___
+
+## Quels sont les pays ayant réalisé le plus grand nombre de lancements de missions spatiales depuis le début de l'histoire?
+
+**Question**: "Quels sont les pays ayant réalisé le plus grand nombre de lancements de missions spatiales depuis le début de l'histoire?"
+
+**Individu**: Un pays.
+
+**Population**: Tous les pays ayant effectué des lancements spatiaux depuis 1957.
+
+**Échantillon**: Un sous-ensemble des pays ayant effectué des lancements spatiaux depuis 1957, incluant uniquement ceux qui sont présents dans le jeu de données et dont le nombre de lancements n'est pas manquant.
+
+**Variable**: Le nombre de lancements spatiaux par pays: quantitative, discrète.
+
+**Modalité**: Un nombre entier positif.
 
 ```{r }
 launches_by_country <- space_missions %>% 
@@ -215,7 +254,21 @@ ggplot(launches_by_country, aes(x = reorder(country, launch_count), y = launch_c
 
 Le classement des pays en termes de nombre de lancements de fusées est fortement influencé par l'histoire de l'exploration spatiale. Les États-Unis et la Russie ont été les pionniers de la conquête spatiale et ont mené de nombreuses missions spatiales au cours des décennies passées, ce qui explique leur position en tête de liste. Le Kazakhstan a également été un lieu de lancement important pour les missions spatiales russes, tandis que la France est connue pour ses lancements à partir du Centre spatial guyanais en Amérique du Sud. La Chine, le Japon, l'Inde et l'Iran ont également lancé de nombreuses missions spatiales ces dernières années, ce qui explique leur position dans ce classement. En revanche, la Nouvelle-Zélande est un nouvel acteur dans le domaine de l'exploration spatiale et a commencé à effectuer des lancements de fusées plus récemment, ce qui explique sa position plus basse dans la liste.
 
-## Les dépenses vs les pertes par pays
+___
+
+## Comment les dépenses et les pertes liées aux missions spatiales sont-elles réparties par pays?
+
+**Question**: "Comment les dépenses et les pertes liées aux missions spatiales sont-elles réparties par pays?"
+
+**Individu**: Une mission spatiale.
+
+**Population**: Toutes les missions spatiales de l'historique.
+
+**Échantillon**: Un sous-ensemble de missions spatiales.
+
+**Variable**: Coût des missions spatiales en millions de dollars, catégorisé en "coût" ou "perte": quantitative, continue
+
+**Modalité**: Les valeurs de la variable "coût" ou "perte".
 
 ```{r }
 space_missions %>% 
@@ -243,7 +296,11 @@ En outre, la Russie peut ne pas considérer les dépenses et les pertes liées a
 
 En fin de compte, sans avoir accès à des données plus détaillées sur les activités spatiales de la Russie, il est difficile de savoir pourquoi il n'y a pas de coûts ou de pertes enregistrés pour ce pays.
 
-## Nombre de lancé au cour du temps de SpaceX
+___
+
+## Bonus: Nombre de lancé au cour du temps de SpaceX
+
+SpaceX est l'une des entreprises spatiales les plus innovantes et ambitieuses du monde. Depuis sa création en 2002, elle s'est imposée comme un acteur majeur de l'industrie spatiale en développant des technologies de lancement réutilisables et en abaissant considérablement les coûts de lancement. Le nombre de lancements effectués par SpaceX au fil du temps est donc un indicateur important de la croissance et du succès de l'entreprise. En examinant l'évolution du nombre de lancements de SpaceX, nous pouvons mieux comprendre la croissance de l'entreprise et son impact sur l'industrie spatiale dans son ensemble.
 
 ```{r }
 space_missions %>%
@@ -268,13 +325,26 @@ org_list <- unique(space_missions$company_name)
 
 # Définition de l'application Shiny
 ui <- fluidPage(
-  titlePanel("Nombre de lancements par année"),
+  titlePanel("Toutes les missions spatiales depuis le début de la course à l'espace (1957)"),
   sidebarLayout(
     sidebarPanel(
-      selectInput(inputId = "org", label = "Choisir une organisation", choices = org_list)
+      selectInput(inputId = "org", label = "Choisir une organisation", choices = org_list),
+      sliderInput(inputId = "year", label = "Choisir une année de lancement", 
+            min = min(year(space_missions$launch_date)), 
+            max = max(year(space_missions$launch_date)), 
+            value = 2020, sep = "")
     ),
     mainPanel(
-      plotOutput(outputId = "plot")
+      tabsetPanel(
+        tabPanel("Lancements par année",
+                 plotOutput(outputId = "plot1")),
+        tabPanel("Coûts et pertes",
+                 plotOutput(outputId = "plot2")),
+        tabPanel("Statut des missions",
+                 plotOutput(outputId = "plot3")),
+        tabPanel("Informations sur les fusées",
+                 DT::dataTableOutput(outputId = "table"))
+      )
     )
   )
 )
@@ -288,8 +358,9 @@ server <- function(input, output) {
   })
   
   # Graphique du nombre de lancements par année pour l'organisation sélectionnée
-  output$plot <- renderPlot({
+  output$plot1 <- renderPlot({
     org_data() %>%
+      filter(as.numeric(substr(launch_date, 1, 4)) >= input$year) %>% # filtrer 
       group_by(launch_year = year(as.Date(launch_date))) %>%
       summarise(count = n()) %>%
       ggplot(aes(x = launch_year, y = count)) +
@@ -300,17 +371,69 @@ server <- function(input, output) {
       theme(plot.title = element_text(hjust = 0.5))
   })
   
-}
+  # Graphique des dépenses et pertes par pays
+  output$plot2 <- renderPlot({
+  space_missions %>%
+    filter(as.numeric(substr(launch_date, 1, 4)) >= input$year) %>% # filtrer 
+    mutate(cost_type = ifelse(status_mission == "Success", "Coût", "Perte")) %>%
+    group_by(country, cost_type) %>%
+    summarise(total_cost = sum(cost, na.rm = TRUE)) %>%
+    arrange(total_cost) %>%
+    ggplot(aes(x = reorder(country, total_cost), y = total_cost, fill = cost_type)) +
+    geom_bar(stat = "identity") +
+    labs(title = "Dépenses et pertes par pays",
+         x = "Pays", y = "Coûts et pertes (en millions USD)",
+         fill = "Type de coût") +
+    theme(plot.title = element_text(hjust = 0.5),
+          legend.position = "bottom",
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+})
+
+  
+  
+  # Graphique de la répartition des dates de lancement en fonction du statut de la mission
+  output$plot3 <- renderPlot({
+    space_missions %>%
+      filter(as.numeric(substr(launch_date, 1, 4)) >= input$year) %>% # filtrer en fonction de l'année minimum sélectionnée
+      ggplot(aes(x = status_mission, y = launch_date, fill = status_mission)) +
+      geom_violin(scale = "count", trim = FALSE, alpha = 0.7, width = 1) +
+      scale_fill_manual(values = c("#d91515", "#d97115", "#d9cd15", "#49d915"), 
+                        labels = c("Échec", "Échec partiel", "Échec du pré-lancement", "Succès")) +
+      scale_x_discrete(labels = c("Échec", "Échec partiel", "Échec du pré-lancement", "Succès")) +
+      labs(x = "Statut de la mission", y = "Date de lancement") +
+      guides(fill = guide_legend(title = "Statut de la mission")) +
+      ggtitle("Répartition des dates de lancement en fonction du statut de la mission") +
+      theme(legend.position = "bottom")
+  })
+
+  
+  # Tableau avec les informations sur les missions de l'organisation sélectionnée
+  output$table <- DT::renderDataTable({
+    org_data() %>%
+      select(rocket_name, launch_date, location, status_mission) %>%
+      rename("Nom de la fusée" = rocket_name,
+             "Date de lancement" = launch_date,
+             "Site de lancement" = location,
+             "Statut de la mission" = status_mission) %>%
+      datatable(extensions = 'Buttons', 
+                options = list(dom = 'Bfrtip', 
+                               buttons = c('copy', 'csv', 'excel', 'pdf', 'print')),
+                class = 'cell-border stripe', 
+                rownames = FALSE)
+})
+
+  
+  # Carte avec les sites de lancement de l'organisation sélectionnée
+  #output$map <- renderLeaflet({
+  #  org_data() %>%
+  #    select(launch_site_name, launch_site_latitude, launch_site_longitude) %>%
+  #    distinct() %>%
+  #    leaflet() %>%
+  #    addTiles() %>%
+  #    addMarkers(lng = ~launch_site_longitude, lat = ~launch_site_latitude, popup = ~launch_site_name)
+  #})
+  }
 
 # Lancement de l'application Shiny
 shinyApp(ui, server)
 ```
-
----
-
-Question: Les couples pacsés ont-ils plus d’enfants de moins de 25 ans que les couples mariés en France en
-2017 ?
-Individu: un couple
-Population: tous les couples français
-Variable: nombre d’enfants de moins de 25 ans: quantitative, discrète
-Modalités: nombre positif
